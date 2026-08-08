@@ -577,7 +577,7 @@
         </form>
       </div>
     </div>`;
-    document.getElementById('login-form').addEventListener('submit', (e)=>{
+    document.getElementById('login-form').addEventListener('submit', async (e)=>{
       e.preventDefault();
       const sel = document.getElementById('l-equipe').value;
       const pin = document.getElementById('l-pin').value.trim();
