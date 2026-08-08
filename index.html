@@ -264,6 +264,51 @@
     return { value: JSON.stringify(data.value ?? parsed) };
   }
 
+  async function uploadAttachment(file){
+    if(!file) return null;
+    const maxSize = 20 * 1024 * 1024;
+    if(file.size > maxSize) throw new Error('O anexo não pode ultrapassar 20 MB.');
+
+    const allowed = [
+      'application/pdf',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-powerpoint',
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+      'image/png',
+      'image/jpeg',
+      'image/webp',
+      'text/plain'
+    ];
+    if(file.type && !allowed.includes(file.type)){
+      throw new Error('Tipo de arquivo não permitido. Use PDF, Word, Excel, PowerPoint, imagem ou TXT.');
+    }
+
+    const ext = (file.name.includes('.') ? file.name.split('.').pop() : 'bin').toLowerCase().replace(/[^a-z0-9]/g,'');
+    const base = (file.name.replace(/\.[^/.]+$/, '') || 'anexo')
+      .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      .replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80) || 'anexo';
+    const path = `${currentEquipeId || 'organizacao'}/${Date.now()}-${uid()}-${base}.${ext}`;
+
+    const { data, error } = await supabaseClient.storage
+      .from('juri-anexos')
+      .upload(path, file, { cacheControl:'3600', upsert:false, contentType:file.type || undefined });
+    if(error) throw error;
+
+    return { path:data.path, name:file.name, size:file.size, type:file.type || '' };
+  }
+
+  async function openAttachment(path){
+    if(!path) return;
+    const { data, error } = await supabaseClient.storage
+      .from('juri-anexos')
+      .createSignedUrl(path, 3600);
+    if(error) throw error;
+    window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
+  }
+
 (function(){
   "use strict";
 
@@ -687,9 +732,15 @@
             <textarea id="d-conteudo" placeholder="Cole ou digite o texto da peça..." required></textarea>
           </div>
           <div class="field">
-            <label>Link de anexo (opcional — PDF/Drive/etc.)</label>
+            <label>Anexo direto (opcional)</label>
+            <input type="file" id="d-arquivo" accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.png,.jpg,.jpeg,.webp,.txt">
+            <p class="hint">Envie o arquivo diretamente para os autos. Máximo de 20 MB.</p>
+          </div>
+          <div class="field">
+            <label>Link externo (opcional)</label>
             <input type="url" id="d-link" placeholder="https://...">
           </div>
+          <div class="error-msg" id="d-error"></div>
           <button class="btn" type="submit">Protocolar peça</button>
         </form>
       </div>` : ''}
@@ -707,17 +758,35 @@
       const titulo = document.getElementById('d-titulo').value.trim();
       const conteudo = document.getElementById('d-conteudo').value.trim();
       const link = document.getElementById('d-link').value.trim();
+      const arquivo = document.getElementById('d-arquivo').files[0] || null;
       const prazoId = document.getElementById('d-prazo').value || null;
+      const errEl = document.getElementById('d-error');
       if(!titulo || !conteudo) return;
       const safeLink = safeUrl(link);
       if(link && !safeLink){
-        alert('O link do anexo precisa começar com http:// ou https://.');
+        errEl.textContent = 'O link do anexo precisa começar com http:// ou https://.';
         return;
       }
+
+      const submitBtn = form.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.textContent = arquivo ? 'Enviando anexo…' : 'Protocolando…';
+
+      let attachment = null;
+      try{
+        if(arquivo) attachment = await uploadAttachment(arquivo);
+      }catch(err){
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Protocolar peça';
+        errEl.textContent = err.message || 'Não foi possível enviar o anexo.';
+        return;
+      }
+
       const seq = Number.isInteger(casefile.nextDocSeq) && casefile.nextDocSeq > 0 ? casefile.nextDocSeq : 1;
       casefile.nextDocSeq = seq + 1;
       const doc = {
         id: uid(), equipeId: currentEquipeId, papel: currentPapel, tipo, titulo, conteudo, link: safeLink,
+        anexo: attachment,
         prazoId, dataEnvio: nowIso(), protocolo: protocolNumber(seq)
       };
       casefile.documentos.push(doc);
@@ -731,6 +800,21 @@
         const id = btn.dataset.toggleDoc;
         expandedDocs[id] = !expandedDocs[id];
         render();
+      });
+    });
+    content.querySelectorAll('[data-open-anexo]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const oldText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Abrindo anexo…';
+        try{
+          await openAttachment(btn.dataset.openAnexo);
+        }catch(err){
+          alert('Não foi possível abrir o anexo: ' + (err.message || 'erro desconhecido'));
+        }finally{
+          btn.disabled = false;
+          btn.textContent = oldText;
+        }
       });
     });
   }
@@ -754,7 +838,8 @@
         </div>
         <div class="doc-body">${esc(preview)}</div>
         ${doc.conteudo.length > 220 ? `<button class="toggle-link" data-toggle-doc="${doc.id}" style="margin-top:6px;">${expanded?'Recolher':'Ler peça completa'}</button>` : ''}
-        ${safeUrl(doc.link) ? `<div><a class="doc-link" href="${esc(safeUrl(doc.link))}" target="_blank" rel="noopener noreferrer">🔗 Ver anexo</a></div>` : ''}
+        ${doc.anexo?.path ? `<div><button class="toggle-link" data-open-anexo="${esc(doc.anexo.path)}">📎 Abrir anexo${doc.anexo.name ? ` — ${esc(doc.anexo.name)}` : ''}</button></div>` : ''}
+        ${safeUrl(doc.link) ? `<div><a class="doc-link" href="${esc(safeUrl(doc.link))}" target="_blank" rel="noopener noreferrer">🔗 Abrir link externo</a></div>` : ''}
       </div>
     `;
   }
@@ -910,6 +995,8 @@
       <div class="card">
         <div class="field"><label>Título do caso</label><input type="text" id="c-titulo" value="${esc(config.titulo)}"></div>
         <div class="field"><label>Vara / Comarca</label><input type="text" id="c-vara" value="${esc(config.vara)}"></div>
+        <div class="field"><label>Número dos autos</label><input type="text" id="c-autos-numero" value="${esc(config.autosNumero)}" placeholder="Ex.: 0001234-56.2026.8.16.0021"></div>
+        <p class="hint">A alteração muda o número exibido no sistema. Os números de protocolo das peças já registradas não são alterados.</p>
         <button class="btn" id="c-save">Salvar alterações</button>
         <div class="error-msg" id="c-msg"></div>
       </div>
@@ -958,9 +1045,10 @@
     document.getElementById('c-save').addEventListener('click', async ()=>{
       const titulo = document.getElementById('c-titulo').value.trim();
       const vara = document.getElementById('c-vara').value.trim();
+      const autosNumero = document.getElementById('c-autos-numero').value.trim();
       const msg = document.getElementById('c-msg');
-      if(!titulo || !vara){ msg.textContent = 'Preencha os dois campos.'; return; }
-      config.titulo = titulo; config.vara = vara;
+      if(!titulo || !vara || !autosNumero){ msg.textContent = 'Preencha título, vara e número dos autos.'; return; }
+      config.titulo = titulo; config.vara = vara; config.autosNumero = autosNumero;
       try{ await saveConfig(); msg.style.color='var(--forest)'; msg.textContent='Salvo.'; }
       catch(e){ msg.style.color='var(--burgundy)'; msg.textContent='Erro ao salvar.'; }
       render();
