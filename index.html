@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Autos Eletrônicos — Júri Simulado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F5F2EA;
+    --paper-2:#EFEBDF;
+    --ink:#23262B;
+    --ink-soft:#57544C;
+    --navy:#1C2B4A;
+    --navy-dark:#101B31;
+    --burgundy:#7A2131;
+    --burgundy-soft:#9C3A4B;
+    --gold:#8A6A2E;
+    --forest:#2F5233;
+    --line:#D8D0BC;
+    --white:#FFFFFF;
+    --shadow: 0 2px 10px rgba(28,43,74,0.08), 0 1px 2px rgba(28,43,74,0.06);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:'IBM Plex Sans', sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{ background: var(--gold); color:var(--white); }
+  h1,h2,h3,.serif{ font-family:'Source Serif 4', serif; }
+  .mono{ font-family:'IBM Plex Mono', monospace; }
+  a{ color: var(--navy); }
+  button{ font-family:inherit; cursor:pointer; }
+  input, select, textarea{ font-family:inherit; }
+  :focus-visible{ outline: 2px solid var(--navy); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce){ *{ animation-duration:0.001ms !important; transition-duration:0.001ms !important; } }
+
+  #app{ min-height:100vh; }
+
+  /* ---------- Shell / letterhead ---------- */
+  .letterhead{
+    background: var(--navy);
+    background-image: linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 100%);
+    color: var(--paper);
+    padding: 18px 20px;
+    position: sticky; top:0; z-index: 20;
+    box-shadow: var(--shadow);
+  }
+  .letterhead-inner{ max-width: 1000px; margin:0 auto; display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .lh-title{ display:flex; flex-direction:column; gap:2px; }
+  .lh-eyebrow{ font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.14em; text-transform:uppercase; color:#C9B98A; }
+  .lh-case{ font-family:'Source Serif 4', serif; font-size: 19px; font-weight:600; }
+  .lh-autos{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:#B9C3D8; }
+  .lh-role{ display:flex; align-items:center; gap:10px; }
+  .role-badge{
+    font-family:'IBM Plex Mono', monospace; font-size:11px; letter-spacing:0.04em; text-transform:uppercase;
+    padding: 5px 10px; border-radius:3px; border:1px solid rgba(255,255,255,0.25); color:var(--paper);
+    max-width: 220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .btn-ghost{
+    background:transparent; border:1px solid rgba(255,255,255,0.35); color:var(--paper);
+    padding:7px 12px; border-radius:3px; font-size:13px;
+  }
+  .btn-ghost:hover{ background:rgba(255,255,255,0.1); }
+
+  .tabs{ max-width:1000px; margin: 0 auto; display:flex; gap:2px; padding: 0 20px; overflow-x:auto; }
+  .tab{
+    padding:12px 16px; font-size:13.5px; font-weight:500; color:var(--ink-soft);
+    background:var(--paper-2); border:1px solid var(--line); border-bottom:none; border-radius:5px 5px 0 0;
+    white-space:nowrap;
+  }
+  .tab.active{ background:var(--white); color:var(--navy); font-weight:600; border-color:var(--line); }
+  .tab-bar-wrap{ background:var(--paper-2); border-bottom:1px solid var(--line); }
+
+  main{ max-width:1000px; margin:0 auto; padding: 22px 20px 80px; }
+
+  /* ---------- Cards / generic ---------- */
+  .card{
+    background: var(--white);
+    border:1px solid var(--line);
+    border-radius:6px;
+    box-shadow: var(--shadow);
+    padding: 18px 20px;
+    margin-bottom:16px;
+    position:relative;
+  }
+  .section-title{ font-family:'Source Serif 4', serif; font-size:20px; font-weight:600; margin: 0 0 4px; color:var(--navy); }
+  .section-sub{ color:var(--ink-soft); font-size:13.5px; margin:0 0 18px; }
+
+  .empty{
+    border:1px dashed var(--line); border-radius:6px; padding: 26px 18px; text-align:center;
+    color:var(--ink-soft); font-size:13.5px; background: repeating-linear-gradient(135deg, var(--paper-2), var(--paper-2) 10px, var(--paper) 10px, var(--paper) 20px);
+  }
+
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:12.5px; font-weight:600; color:var(--ink-soft); margin-bottom:5px; letter-spacing:0.02em; }
+  .field input[type=text], .field input[type=password], .field input[type=url], .field input[type=number],
+  .field input[type=date], .field input[type=datetime-local], .field select, .field textarea{
+    width:100%; padding:9px 10px; border:1px solid var(--line); border-radius:4px; background:var(--paper);
+    font-size:14px; color:var(--ink);
+  }
+  .field textarea{ min-height:110px; resize:vertical; line-height:1.5; }
+  .field-row{ display:flex; gap:12px; flex-wrap:wrap; }
+  .field-row > .field{ flex:1; min-width:160px; }
+  .hint{ font-size:12px; color:var(--ink-soft); margin-top:4px; }
+
+  .btn{
+    background: var(--navy); color:var(--white); border:none; border-radius:4px;
+    padding:10px 18px; font-size:13.5px; font-weight:600; letter-spacing:0.01em;
+  }
+  .btn:hover{ background:var(--navy-dark); }
+  .btn.secondary{ background:transparent; color:var(--navy); border:1px solid var(--navy); }
+  .btn.secondary:hover{ background: rgba(28,43,74,0.06); }
+  .btn.danger{ background:transparent; color:var(--burgundy); border:1px solid var(--burgundy); }
+  .btn.danger:hover{ background: rgba(122,33,49,0.06); }
+  .btn.small{ padding:5px 10px; font-size:12px; }
+  .btn:disabled{ opacity:0.45; cursor:not-allowed; }
+
+  .error-msg{ color:var(--burgundy); font-size:13px; margin-top:8px; }
+
+  /* ---------- Login / setup ---------- */
+  .center-screen{ min-height:100vh; display:flex; align-items:center; justify-content:center; padding: 30px 16px; }
+  .login-card{ max-width:460px; width:100%; }
+  .login-seal{
+    width:56px; height:56px; border-radius:50%; border:2px solid var(--gold); color:var(--gold);
+    display:flex; align-items:center; justify-content:center; font-family:'Source Serif 4', serif; font-size:22px; font-weight:700;
+    margin: 0 auto 14px;
+  }
+  .login-head{ text-align:center; margin-bottom:22px; }
+  .login-head h1{ font-size:22px; margin:0 0 6px; color:var(--navy); }
+  .login-head p{ font-size:13px; color:var(--ink-soft); margin:0; }
+
+  .defesa-row{ display:flex; gap:10px; align-items:flex-end; margin-bottom:10px; }
+  .defesa-row .field{ margin-bottom:0; flex:1; }
+  .defesa-row .rm-btn{ padding:9px 10px; border-radius:4px; border:1px solid var(--line); background:var(--paper); color:var(--burgundy); font-size:13px; }
+
+  /* ---------- Document card ---------- */
+  .doc-card{ padding-top:22px; }
+  .doc-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap; }
+  .doc-meta{ display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:6px; }
+  .doc-tipo{ font-size:11.5px; text-transform:uppercase; letter-spacing:0.06em; color:var(--ink-soft); font-weight:600; }
+  .doc-titulo{ font-family:'Source Serif 4', serif; font-size:17px; font-weight:600; margin: 2px 0 6px; color:var(--ink); }
+  .doc-date{ font-family:'IBM Plex Mono', monospace; font-size:11.5px; color:var(--ink-soft); }
+  .doc-body{ font-size:14px; line-height:1.6; color:var(--ink); white-space:pre-wrap; margin-top:8px; border-top:1px dashed var(--line); padding-top:10px; }
+  .doc-link{ display:inline-block; margin-top:8px; font-size:13px; }
+  .doc-actions{ display:flex; gap:8px; margin-top:12px; }
+
+  .badge{
+    display:inline-block; font-family:'IBM Plex Mono', monospace; font-size:10.5px; letter-spacing:0.05em; text-transform:uppercase;
+    padding:3px 8px; border-radius:3px; font-weight:600;
+  }
+  .badge.juizo{ background:#E4E9F2; color:var(--navy); }
+  .badge.acusacao{ background:#F3E1E4; color:var(--burgundy); }
+  .badge.defesa{ background:#E1EBE2; color:var(--forest); }
+  .badge.secretaria{ background:#F0E7D2; color:var(--gold); }
+  .badge.organizacao{ background:#2A2A2A; color:#EFEBDF; }
+
+  .badge.status-ok{ background:#E1EBE2; color:var(--forest); }
+  .badge.status-atencao{ background:#F5E7CE; color:#8A5A0E; }
+  .badge.status-atrasado{ background:#F3E1E4; color:var(--burgundy); }
+  .badge.status-cumprido{ background:#E4E9F2; color:var(--navy); }
+
+  /* stamp */
+  .stamp{
+    position:absolute; top:-10px; right:16px;
+    border:2px double var(--burgundy); color:var(--burgundy);
+    background: rgba(255,255,255,0.92);
+    padding:5px 10px 4px; border-radius:2px;
+    transform: rotate(-5deg);
+    font-family:'IBM Plex Mono', monospace; font-size:10px; line-height:1.35; text-align:center;
+    letter-spacing:0.04em; text-transform:uppercase; box-shadow:0 1px 3px rgba(0,0,0,0.12);
+  }
+  .stamp b{ display:block; font-size:10.5px; }
+
+  /* ---------- Prazos ---------- */
+  .prazo-row{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; padding:12px 0; border-bottom:1px solid var(--line); }
+  .prazo-row:last-child{ border-bottom:none; }
+  .prazo-left{ flex:1; min-width:220px; }
+  .prazo-etapa{ font-weight:600; font-size:14.5px; }
+  .prazo-resp{ font-size:12.5px; color:var(--ink-soft); margin-top:2px; }
+  .prazo-countdown{ font-family:'IBM Plex Mono', monospace; font-size:13px; text-align:right; }
+  .prazo-limite{ font-size:11px; color:var(--ink-soft); text-align:right; }
+  .prazo-progress{ font-size:11.5px; color:var(--ink-soft); text-align:right; margin-top:2px; }
+
+  .alert-banner{
+    background:#F5E7CE; border:1px solid #C9A24A; color:#5E3E0B; border-radius:5px;
+    padding:12px 16px; margin-bottom:16px; font-size:13.5px;
+  }
+  .alert-banner b{ display:block; margin-bottom:4px; font-family:'Source Serif 4', serif; font-size:14.5px; }
+
+  .checklist{ display:flex; flex-direction:column; gap:8px; max-height:220px; overflow-y:auto; border:1px solid var(--line); border-radius:4px; padding:10px; background:var(--paper); margin-bottom:14px; }
+  .checklist label{ display:flex; align-items:center; gap:8px; font-size:13px; font-weight:400; color:var(--ink); }
+  .checklist-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+
+  /* ---------- Andamento (timeline) ---------- */
+  .log-item{ display:flex; gap:14px; padding:12px 0; border-bottom:1px solid var(--line); }
+  .log-item:last-child{ border-bottom:none; }
+  .log-num{ font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--gold); font-weight:600; min-width:34px; }
+  .log-text{ font-size:13.5px; line-height:1.5; }
+  .log-date{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-soft); margin-top:2px; }
+
+  .divider{ height:1px; background:var(--line); margin:18px 0; }
+
+  .toggle-link{ background:none; border:none; color:var(--navy); font-size:13px; padding:0; font-weight:600; }
+  .toggle-link:hover{ text-decoration:underline; }
+
+  .team-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--line); flex-wrap:wrap; }
+  .team-row:last-child{ border-bottom:none; }
+  .team-info{ font-size:13.5px; }
+  .team-info .mono{ color:var(--ink-soft); font-size:12px; }
+  .team-actions{ display:flex; gap:6px; align-items:center; }
+  .team-actions input{ padding:6px 8px; border:1px solid var(--line); border-radius:4px; font-size:13px; width:130px; }
+
+  @media (max-width:600px){
+    .lh-case{ font-size:16px; }
+    .prazo-countdown, .prazo-limite, .prazo-progress{ text-align:left; }
+    .prazo-row{ flex-direction:column; align-items:flex-start; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  // ===== SUPABASE =====
+  const SUPABASE_URL = 'https://hnyhdebapuknebuozotz.supabase.co';
+  // Cole aqui a Publishable key (ou anon key) do projeto Supabase.
+  const SUPABASE_KEY = 'sb_publishable_YknzQEA8PohQd7IGfIPrDA_gzviWUDL';
+  const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  async function ensureSupabaseSession(){
+    if(SUPABASE_KEY === 'COLE_AQUI_SUA_CHAVE_PUBLICA'){
+      throw new Error('A chave pública do Supabase ainda não foi configurada no HTML.');
+    }
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if(!session){
+      const { error } = await supabaseClient.auth.signInAnonymously();
+      if(error) throw error;
+    }
+  }
+
+  async function dbGet(key){
+    const { data, error } = await supabaseClient
+      .from('juri_state')
+      .select('value')
+      .eq('key', key)
+      .maybeSingle();
+    if(error) throw error;
+    return data ? { value: JSON.stringify(data.value) } : null;
+  }
+
+  async function dbSet(key, value){
+    const parsed = JSON.parse(value);
+    const { data, error } = await supabaseClient.rpc('juri_state_upsert', {
+      p_key: key,
+      p_value: parsed
+    });
+    if(error) throw error;
+    return { value: JSON.stringify(data.value ?? parsed) };
+  }
+
+(function(){
+  "use strict";
+
+  const BASE_ROLE_LABELS = { juizo:'Juízo', acusacao:'Ministério Público (Acusação)', defesa:'Defesa', secretaria:'Secretaria', organizacao:'Organização' };
+  const TIPOS_PECA = ['Denúncia','Resposta à Acusação','Rol de Testemunhas','Quesitos','Alegações Finais','Recurso','Decisão / Despacho','Sentença de Pronúncia','Ata de Audiência','Petição Simples','Outro'];
+
+  let config = null;       // { titulo, vara, autosNumero, orgPin, equipes:[{id,papel,label,pin}], criadoEm }
+  let casefile = null;     // { documentos:[], prazos:[], log:[] }
+  let screen = 'loading';  // loading | setup | login | app
+  let currentEquipeId = null;   // null when organizacao
+  let currentPapel = null;      // juizo | acusacao | defesa | secretaria | organizacao
+  let currentLabel = null;
+  let activeTab = 'autos';
+  let loginError = '';
+  let expandedDocs = {};
+  let pollTimer = null;
+  let defesaCount = 1; // used only during setup wizard
+
+  const $app = document.getElementById('app');
+
+  function esc(s){
+    return String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+  function safeUrl(s){
+    const value = String(s || '').trim();
+    if(!value) return null;
+    try{
+      const u = new URL(value, window.location.href);
+      if(u.protocol !== 'http:' && u.protocol !== 'https:') return null;
+      return value;
+    }catch(e){ return null; }
+  }
+  function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,8); }
+  function nowIso(){ return new Date().toISOString(); }
+  function fmtDateTime(iso){
+    if(!iso) return '—';
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+  }
+  function isFormFocused(){
+    const t = document.activeElement && document.activeElement.tagName;
+    return t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT';
+  }
+  function protocolNumber(seq){
+    const padded = String(seq).padStart(7,'0');
+    const dv = String((seq*7 + 13) % 97).padStart(2,'0');
+    const year = new Date().getFullYear();
+    return `${padded}-${dv}.${year}.8.16.0021`;
+  }
+  function addLog(texto){
+    casefile.log.push({ id: uid(), texto, data: nowIso() });
+  }
+  function equipeById(id){
+    return config.equipes.find(e => e.id === id) || null;
+  }
+  function equipeLabel(id){
+    if(id === null || id === undefined) return 'Organização';
+    const eq = equipeById(id);
+    return eq ? eq.label : 'Equipe removida';
+  }
+  function equipePapel(id){
+    const eq = equipeById(id);
+    return eq ? eq.papel : 'defesa';
+  }
+
+  async function saveConfig(){ await dbSet('config', JSON.stringify(config)); }
+  async function saveCasefile(){ await dbSet('casefile', JSON.stringify(casefile)); }
+
+  async function loadAll(){
+    const r = await dbGet('config');
+    config = r ? JSON.parse(r.value) : null;
+    if(config){
+      const r2 = await dbGet('casefile');
+      casefile = r2 ? JSON.parse(r2.value) : {documentos:[],prazos:[],log:[],nextDocSeq:1};
+      if(!Array.isArray(casefile.documentos)) casefile.documentos = [];
+      if(!Array.isArray(casefile.prazos)) casefile.prazos = [];
+      if(!Array.isArray(casefile.log)) casefile.log = [];
+      if(!Number.isInteger(casefile.nextDocSeq) || casefile.nextDocSeq < 1){
+        casefile.nextDocSeq = casefile.documentos.reduce((max, d) => {
+          const m = String(d.protocolo || '').match(/^(\d{1,7})-/);
+          return Math.max(max, m ? parseInt(m[1], 10) + 1 : 1);
+        }, 1);
+      }
+    }
+  }
+
+  function prazoProgress(prazo){
+    const total = prazo.responsaveis.length;
+    const done = prazo.responsaveis.filter(id => casefile.documentos.some(d => d.prazoId === prazo.id && d.equipeId === id)).length;
+    return { done, total };
+  }
+  function computeStatus(prazo){
+    const {done, total} = prazoProgress(prazo);
+    if(total > 0 && done === total) return 'cumprido';
+    const limite = new Date(prazo.dataLimite).getTime();
+    const now = Date.now();
+    if(limite < now) return 'atrasado';
+    if(limite - now < 48*3600*1000) return 'atencao';
+    return 'ok';
+  }
+  function statusLabel(s){ return { ok:'No prazo', atencao:'Atenção', atrasado:'Atrasado', cumprido:'Cumprido' }[s]; }
+  function countdownText(prazo, status){
+    const limite = new Date(prazo.dataLimite).getTime();
+    const diff = limite - Date.now();
+    const abs = Math.abs(diff);
+    const dias = Math.floor(abs / 86400000);
+    const horas = Math.floor((abs % 86400000) / 3600000);
+    const txt = (dias>0 ? dias+'d ' : '') + horas + 'h';
+    if(status === 'cumprido') return 'Todas as equipes protocolaram';
+    return diff < 0 ? `venceu há ${txt}` : `faltam ${txt}`;
+  }
+
+  // ---------------- RENDER ----------------
+  function render(){
+    if(screen === 'loading'){ renderLoading(); return; }
+    if(screen === 'setup'){ renderSetup(); return; }
+    if(screen === 'login'){ renderLogin(); return; }
+    renderApp();
+  }
+
+  function renderLoading(){
+    $app.innerHTML = `<div class="center-screen"><p class="mono" style="color:var(--ink-soft);font-size:13px;">Carregando autos…</p></div>`;
+  }
+
+  function defesaFieldsHtml(){
+    let html = '';
+    for(let i=1; i<=defesaCount; i++){
+      html += `
+        <div class="defesa-row">
+          <div class="field"><label>Nome/rótulo da defesa ${i}</label><input type="text" class="d-label" placeholder="Ex.: Defesa — Réu 1 (Nome)" value="Defesa — Réu ${i}" required></div>
+          <div class="field"><label>PIN</label><input type="text" class="d-pin" required></div>
+          ${defesaCount > 1 ? `<button type="button" class="rm-btn" data-rm-defesa="${i}">✕</button>` : ''}
+        </div>`;
+    }
+    return html;
+  }
+
+  function renderSetup(){
+    $app.innerHTML = `
+    <div class="center-screen">
+      <div class="card login-card">
+        <div class="login-head">
+          <div class="login-seal">TJ</div>
+          <h1>Configurar o processo</h1>
+          <p>Ninguém configurou este júri simulado ainda. Defina os dados dos autos e crie um login (PIN) para cada equipe — cada réu pode ter sua própria defesa, isolada das demais.</p>
+        </div>
+        <form id="setup-form">
+          <div class="field">
+            <label>Título do caso</label>
+            <input type="text" id="s-titulo" placeholder="Ex.: Ministério Público x João, Maria e Pedro — Homicídio qualificado" required>
+          </div>
+          <div class="field">
+            <label>Vara / Comarca</label>
+            <input type="text" id="s-vara" value="Tribunal do Júri da Comarca de Foz do Iguaçu/PR" required>
+          </div>
+          <div class="divider"></div>
+          <div class="field-row">
+            <div class="field"><label>Juízo — PIN</label><input type="text" id="pin-juizo" required></div>
+            <div class="field"><label>Acusação (MP) — PIN</label><input type="text" id="pin-acusacao" required></div>
+          </div>
+          <div class="field"><label>Secretaria — PIN</label><input type="text" id="pin-secretaria" required></div>
+          <div class="divider"></div>
+          <div class="field">
+            <label>Número de réus (equipes de defesa)</label>
+            <input type="number" id="s-numreus" min="1" max="8" value="1">
+          </div>
+          <div id="defesa-fields">${defesaFieldsHtml()}</div>
+          <div class="divider"></div>
+          <div class="field">
+            <label>PIN de Organização (só você — acesso total e configurações)</label>
+            <input type="text" id="pin-organizacao" required>
+          </div>
+          <div class="error-msg" id="setup-error"></div>
+          <button class="btn" type="submit" style="width:100%;margin-top:6px;">Criar autos e continuar</button>
+        </form>
+      </div>
+    </div>`;
+
+    const numReusEl = document.getElementById('s-numreus');
+    numReusEl.addEventListener('input', ()=>{
+      let n = parseInt(numReusEl.value, 10);
+      if(isNaN(n) || n < 1) n = 1;
+      if(n > 8) n = 8;
+      defesaCount = n;
+      document.getElementById('defesa-fields').innerHTML = defesaFieldsHtml();
+      bindRemoveButtons();
+    });
+    function bindRemoveButtons(){
+      document.querySelectorAll('[data-rm-defesa]').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          if(defesaCount <= 1) return;
+          defesaCount -= 1;
+          numReusEl.value = defesaCount;
+          document.getElementById('defesa-fields').innerHTML = defesaFieldsHtml();
+          bindRemoveButtons();
+        });
+      });
+    }
+    bindRemoveButtons();
+
+    document.getElementById('setup-form').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const titulo = document.getElementById('s-titulo').value.trim();
+      const vara = document.getElementById('s-vara').value.trim();
+      const orgPin = document.getElementById('pin-organizacao').value.trim();
+      const errEl = document.getElementById('setup-error');
+
+      const equipes = [
+        { id:'juizo', papel:'juizo', label:'Juízo', pin: document.getElementById('pin-juizo').value.trim() },
+        { id:'acusacao', papel:'acusacao', label:'Ministério Público (Acusação)', pin: document.getElementById('pin-acusacao').value.trim() },
+        { id:'secretaria', papel:'secretaria', label:'Secretaria', pin: document.getElementById('pin-secretaria').value.trim() },
+      ];
+      const labelEls = document.querySelectorAll('.d-label');
+      const pinEls = document.querySelectorAll('.d-pin');
+      labelEls.forEach((el, idx)=>{
+        equipes.push({ id: `defesa-${idx+1}`, papel:'defesa', label: el.value.trim() || `Defesa — Réu ${idx+1}`, pin: pinEls[idx].value.trim() });
+      });
+
+      const allPins = [...equipes.map(e=>e.pin), orgPin];
+      if(!titulo || !vara){ errEl.textContent = 'Preencha título e vara.'; return; }
+      if(allPins.some(p => p.length < 4)){ errEl.textContent = 'Cada PIN precisa ter pelo menos 4 caracteres.'; return; }
+
+      config = {
+        titulo, vara,
+        autosNumero: protocolNumber(1).replace(/^\d{7}/, String(Math.floor(1000+Math.random()*8999)).padStart(7,'0')),
+        equipes, orgPin, criadoEm: nowIso()
+      };
+      casefile = { documentos:[], prazos:[], log:[{id:uid(), texto:`Autos distribuídos — ${titulo}`, data: nowIso()}], nextDocSeq:1 };
+      try{
+        await saveConfig();
+        await saveCasefile();
+        screen = 'login';
+        render();
+      }catch(err){
+        errEl.textContent = 'Não consegui salvar. Tente novamente.';
+      }
+    });
+  }
+
+  function renderLogin(){
+    const opts = config.equipes.map(eq => `<option value="${eq.id}">${esc(eq.label)}</option>`).join('')
+      + `<option value="organizacao">Organização</option>`;
+    $app.innerHTML = `
+    <div class="center-screen">
+      <div class="card login-card">
+        <div class="login-head">
+          <div class="login-seal">TJ</div>
+          <h1>${esc(config.titulo)}</h1>
+          <p class="mono" style="font-size:11.5px;">Autos nº ${esc(config.autosNumero)}<br>${esc(config.vara)}<br>JÚRI SIMULADO</p>
+        </div>
+        <form id="login-form">
+          <div class="field">
+            <label>Sua equipe</label>
+            <select id="l-equipe">${opts}</select>
+          </div>
+          <div class="field">
+            <label>PIN</label>
+            <input type="password" id="l-pin" placeholder="PIN da sua equipe" required>
+          </div>
+          <div class="error-msg">${esc(loginError)}</div>
+          <button class="btn" type="submit" style="width:100%;margin-top:4px;">Entrar nos autos</button>
+        </form>
+      </div>
+    </div>`;
+    document.getElementById('login-form').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const sel = document.getElementById('l-equipe').value;
+      const pin = document.getElementById('l-pin').value.trim();
+      if(sel === 'organizacao'){
+        if(pin === config.orgPin){
+          currentEquipeId = null; currentPapel = 'organizacao'; currentLabel = 'Organização';
+          loginError = ''; screen = 'app'; startPolling(); render();
+        } else { loginError = 'PIN incorreto.'; render(); }
+        return;
+      }
+      const eq = equipeById(sel);
+      if(eq && pin === eq.pin){
+        currentEquipeId = eq.id; currentPapel = eq.papel; currentLabel = eq.label;
+        loginError = ''; screen = 'app'; startPolling(); render();
+      } else {
+        loginError = 'PIN incorreto para a equipe selecionada.'; render();
+      }
+    });
+  }
+
+  function startPolling(){
+    if(pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(async ()=>{
+      if(screen !== 'app' || isFormFocused()) return;
+      try{
+        const [cr, fr] = await Promise.all([
+          dbGet('config'),
+          dbGet('casefile')
+        ]);
+        if(cr) config = JSON.parse(cr.value);
+        if(fr) casefile = JSON.parse(fr.value);
+        if(currentPapel !== 'organizacao' && !equipeById(currentEquipeId)){
+          currentEquipeId = null; currentPapel = null; currentLabel = null;
+          loginError = 'Sua equipe não está mais habilitada nestes autos.';
+          screen = 'login';
+          if(pollTimer) clearInterval(pollTimer);
+          render();
+          return;
+        }
+        render();
+      }catch(e){}
+    }, 20000);
+  }
+
+  function renderApp(){
+    // A aba de configurações é exclusiva da Organização.
+    if(currentPapel !== 'organizacao' && activeTab === 'config') activeTab = 'autos';
+
+    const nearPrazos = casefile.prazos.filter(p => {
+      const st = computeStatus(p);
+      const relevantToMe = currentEquipeId && p.responsaveis.includes(currentEquipeId);
+      const alreadyDone = currentEquipeId && casefile.documentos.some(d => d.prazoId === p.id && d.equipeId === currentEquipeId);
+      return relevantToMe && !alreadyDone && (st === 'atencao' || st === 'atrasado');
+    });
+
+    const tabsDef = [
+      {id:'autos', label:'Autos'},
+      {id:'prazos', label:'Prazos'},
+      {id:'andamento', label:'Andamento'},
+    ];
+    if(currentPapel === 'organizacao') tabsDef.push({id:'config', label:'Configurações'});
+
+    $app.innerHTML = `
+      <header class="letterhead">
+        <div class="letterhead-inner">
+          <div class="lh-title">
+            <span class="lh-eyebrow">Autos Eletrônicos · Júri Simulado</span>
+            <span class="lh-case serif">${esc(config.titulo)}</span>
+            <span class="lh-autos">Nº ${esc(config.autosNumero)} — ${esc(config.vara)} — JÚRI SIMULADO</span>
+          </div>
+          <div class="lh-role">
+            <span class="role-badge" title="${esc(currentLabel)}">${esc(currentLabel)}</span>
+            <button class="btn-ghost" id="btn-refresh" title="Atualizar autos">↻ Atualizar</button>
+            <button class="btn-ghost" id="btn-logout">Sair</button>
+          </div>
+        </div>
+      </header>
+      <div class="tab-bar-wrap">
+        <div class="tabs">
+          ${tabsDef.map(t => `<button class="tab ${activeTab===t.id?'active':''}" data-tab="${t.id}">${t.label}</button>`).join('')}
+        </div>
+      </div>
+      <main>
+        ${nearPrazos.length ? `
+          <div class="alert-banner">
+            <b>⏱ Prazo${nearPrazos.length>1?'s':''} próximo${nearPrazos.length>1?'s':''} da sua equipe</b>
+            ${nearPrazos.map(p => `${esc(p.etapa)} — ${countdownText(p, computeStatus(p))}`).join(' · ')}
+          </div>` : ''}
+        <div id="tab-content"></div>
+      </main>
+    `;
+
+    document.getElementById('btn-refresh').addEventListener('click', async ()=>{
+      try{
+        const [cr, fr] = await Promise.all([
+          dbGet('config'),
+          dbGet('casefile')
+        ]);
+        if(cr) config = JSON.parse(cr.value);
+        if(fr) casefile = JSON.parse(fr.value);
+        if(currentPapel !== 'organizacao' && !equipeById(currentEquipeId)){
+          currentEquipeId = null; currentPapel = null; currentLabel = null;
+          loginError = 'Sua equipe não está mais habilitada nestes autos.';
+          screen = 'login';
+          if(pollTimer) clearInterval(pollTimer);
+        }
+      }catch(e){}
+      render();
+    });
+    document.getElementById('btn-logout').addEventListener('click', ()=>{
+      currentEquipeId = null; currentPapel = null; currentLabel = null; screen='login'; loginError='';
+      if(pollTimer) clearInterval(pollTimer);
+      render();
+    });
+    document.querySelectorAll('.tab').forEach(el=>{
+      el.addEventListener('click', ()=>{ activeTab = el.dataset.tab; render(); });
+    });
+
+    const content = document.getElementById('tab-content');
+    if(activeTab === 'autos') renderAutosTab(content);
+    else if(activeTab === 'prazos') renderPrazosTab(content);
+    else if(activeTab === 'andamento') renderAndamentoTab(content);
+    else if(activeTab === 'config') renderConfigTab(content);
+  }
+
+  // ---------- AUTOS TAB ----------
+  function renderAutosTab(content){
+    const docs = [...casefile.documentos].sort((a,b)=> new Date(b.dataEnvio) - new Date(a.dataEnvio));
+    const prazoOpts = casefile.prazos
+      .filter(p => currentPapel === 'organizacao' || p.responsaveis.includes(currentEquipeId))
+      .map(p => `<option value="${p.id}">${esc(p.etapa)} (${fmtDateTime(p.dataLimite)})</option>`).join('');
+
+    const canSubmit = currentPapel !== null; // everyone logged in can protocolar under their own equipe
+    content.innerHTML = `
+      ${canSubmit ? `
+      <div class="card">
+        <h2 class="section-title">Protocolar nova peça</h2>
+        <p class="section-sub">Registrada em nome de <b>${esc(currentLabel)}</b>.</p>
+        <form id="doc-form">
+          <div class="field-row">
+            <div class="field">
+              <label>Tipo de peça</label>
+              <select id="d-tipo">${TIPOS_PECA.map(t=>`<option>${t}</option>`).join('')}</select>
+            </div>
+            <div class="field">
+              <label>Vincular a um prazo (opcional)</label>
+              <select id="d-prazo"><option value="">— nenhum —</option>${prazoOpts}</select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Título</label>
+            <input type="text" id="d-titulo" placeholder="Ex.: Resposta à Acusação" required>
+          </div>
+          <div class="field">
+            <label>Conteúdo da peça</label>
+            <textarea id="d-conteudo" placeholder="Cole ou digite o texto da peça..." required></textarea>
+          </div>
+          <div class="field">
+            <label>Link de anexo (opcional — PDF/Drive/etc.)</label>
+            <input type="url" id="d-link" placeholder="https://...">
+          </div>
+          <button class="btn" type="submit">Protocolar peça</button>
+        </form>
+      </div>` : ''}
+      <h2 class="section-title" style="margin-top:26px;">Autos (${docs.length})</h2>
+      <p class="section-sub">Todas as peças protocoladas, mais recentes primeiro.</p>
+      <div id="doc-list">
+        ${docs.length === 0 ? `<div class="empty">Nenhuma peça protocolada ainda.</div>` : docs.map(renderDocCard).join('')}
+      </div>
+    `;
+
+    const form = document.getElementById('doc-form');
+    if(form) form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const tipo = document.getElementById('d-tipo').value;
+      const titulo = document.getElementById('d-titulo').value.trim();
+      const conteudo = document.getElementById('d-conteudo').value.trim();
+      const link = document.getElementById('d-link').value.trim();
+      const prazoId = document.getElementById('d-prazo').value || null;
+      if(!titulo || !conteudo) return;
+      const safeLink = safeUrl(link);
+      if(link && !safeLink){
+        alert('O link do anexo precisa começar com http:// ou https://.');
+        return;
+      }
+      const seq = Number.isInteger(casefile.nextDocSeq) && casefile.nextDocSeq > 0 ? casefile.nextDocSeq : 1;
+      casefile.nextDocSeq = seq + 1;
+      const doc = {
+        id: uid(), equipeId: currentEquipeId, papel: currentPapel, tipo, titulo, conteudo, link: safeLink,
+        prazoId, dataEnvio: nowIso(), protocolo: protocolNumber(seq)
+      };
+      casefile.documentos.push(doc);
+      addLog(`${currentLabel} protocolou "${titulo}" (${tipo}) — protocolo ${doc.protocolo}`);
+      await saveCasefile();
+      render();
+    });
+
+    content.querySelectorAll('[data-toggle-doc]').forEach(btn=>{
+      btn.addEventListener('click', ()=>{
+        const id = btn.dataset.toggleDoc;
+        expandedDocs[id] = !expandedDocs[id];
+        render();
+      });
+    });
+  }
+
+  function renderDocCard(doc){
+    const expanded = !!expandedDocs[doc.id];
+    const preview = doc.conteudo.length > 220 && !expanded ? doc.conteudo.slice(0,220) + '…' : doc.conteudo;
+    const label = equipeLabel(doc.equipeId);
+    return `
+      <div class="card doc-card">
+        <div class="stamp">PROTOCOLADO<b>${esc(doc.protocolo)}</b>${fmtDateTime(doc.dataEnvio)}</div>
+        <div class="doc-top">
+          <div>
+            <div class="doc-meta">
+              <span class="badge ${doc.papel}">${esc(label)}</span>
+              <span class="doc-tipo">${esc(doc.tipo)}</span>
+            </div>
+            <div class="doc-titulo">${esc(doc.titulo)}</div>
+            <div class="doc-date">Protocolado em ${fmtDateTime(doc.dataEnvio)}</div>
+          </div>
+        </div>
+        <div class="doc-body">${esc(preview)}</div>
+        ${doc.conteudo.length > 220 ? `<button class="toggle-link" data-toggle-doc="${doc.id}" style="margin-top:6px;">${expanded?'Recolher':'Ler peça completa'}</button>` : ''}
+        ${safeUrl(doc.link) ? `<div><a class="doc-link" href="${esc(safeUrl(doc.link))}" target="_blank" rel="noopener noreferrer">🔗 Ver anexo</a></div>` : ''}
+      </div>
+    `;
+  }
+
+  // ---------- PRAZOS TAB ----------
+  function renderPrazosTab(content){
+    const canCreate = currentPapel === 'secretaria' || currentPapel === 'organizacao';
+    const prazos = [...casefile.prazos].sort((a,b)=> new Date(a.dataLimite) - new Date(b.dataLimite));
+
+    content.innerHTML = `
+      ${canCreate ? `
+      <div class="card">
+        <h2 class="section-title">Novo prazo</h2>
+        <p class="section-sub">Escolha quais equipes ele se aplica e defina data fixa ou contagem automática.</p>
+        <form id="prazo-form">
+          <div class="field">
+            <label>Etapa / providência</label>
+            <input type="text" id="p-etapa" placeholder="Ex.: Resposta à Acusação" required>
+          </div>
+          <div class="checklist-head">
+            <label style="font-size:12.5px;font-weight:600;color:var(--ink-soft);">Aplica-se a:</label>
+            <label style="font-weight:400;"><input type="checkbox" id="p-selectall"> selecionar todas</label>
+          </div>
+          <div class="checklist" id="p-resp-list">
+            ${config.equipes.map(eq => `<label><input type="checkbox" class="p-resp-cb" value="${eq.id}"> ${esc(eq.label)}</label>`).join('')}
+          </div>
+          <div class="field">
+            <label>Modo de contagem</label>
+            <select id="p-modo">
+              <option value="fixo">Data fixa</option>
+              <option value="automatico">Automático (dias corridos a partir de uma data)</option>
+            </select>
+          </div>
+          <div id="p-modo-fields"></div>
+          <button class="btn" type="submit">Criar prazo</button>
+          <div class="error-msg" id="p-error"></div>
+        </form>
+      </div>` : ''}
+      <h2 class="section-title" style="margin-top:26px;">Prazos do processo (${prazos.length})</h2>
+      <div class="card">
+        ${prazos.length===0 ? `<div class="empty">Nenhum prazo cadastrado ainda.</div>` : prazos.map(p => renderPrazoRow(p, canCreate)).join('')}
+      </div>
+    `;
+
+    if(canCreate){
+      document.getElementById('p-selectall').addEventListener('change', (e)=>{
+        document.querySelectorAll('.p-resp-cb').forEach(cb => cb.checked = e.target.checked);
+      });
+      const modoSel = document.getElementById('p-modo');
+      const fieldsWrap = document.getElementById('p-modo-fields');
+      function renderModoFields(){
+        if(modoSel.value === 'fixo'){
+          fieldsWrap.innerHTML = `<div class="field"><label>Data e hora limite</label><input type="datetime-local" id="p-datalimite" required></div>`;
+        } else {
+          fieldsWrap.innerHTML = `
+            <div class="field-row">
+              <div class="field"><label>Data/hora do evento inicial</label><input type="datetime-local" id="p-datainicio" required></div>
+              <div class="field"><label>Dias corridos</label><input type="number" id="p-dias" min="1" value="15" required></div>
+            </div>`;
+        }
+      }
+      renderModoFields();
+      modoSel.addEventListener('change', renderModoFields);
+
+      document.getElementById('prazo-form').addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const errEl = document.getElementById('p-error');
+        const etapa = document.getElementById('p-etapa').value.trim();
+        const responsaveis = Array.from(document.querySelectorAll('.p-resp-cb:checked')).map(cb=>cb.value);
+        if(!etapa){ errEl.textContent = 'Informe a etapa.'; return; }
+        if(responsaveis.length === 0){ errEl.textContent = 'Selecione ao menos uma equipe.'; return; }
+        const modo = modoSel.value;
+        let dataLimite;
+        if(modo === 'fixo'){
+          dataLimite = new Date(document.getElementById('p-datalimite').value).toISOString();
+        } else {
+          const inicio = new Date(document.getElementById('p-datainicio').value).getTime();
+          const dias = parseInt(document.getElementById('p-dias').value, 10) || 0;
+          dataLimite = new Date(inicio + dias*86400000).toISOString();
+        }
+        const prazo = { id: uid(), etapa, responsaveis, modo, dataLimite, criadoPor: currentLabel, criadoEm: nowIso() };
+        casefile.prazos.push(prazo);
+        const respLabels = responsaveis.map(equipeLabel).join(', ');
+        addLog(`${currentLabel} definiu o prazo "${etapa}" para ${respLabels} — vencimento em ${fmtDateTime(dataLimite)}`);
+        await saveCasefile();
+        render();
+      });
+    }
+
+    content.querySelectorAll('[data-delete-prazo]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(!confirm('Excluir este prazo?')) return;
+        const id = btn.dataset.deletePrazo;
+        const prazo = casefile.prazos.find(p=>p.id===id);
+        casefile.prazos = casefile.prazos.filter(p=>p.id!==id);
+        if(prazo) addLog(`${currentLabel} excluiu o prazo "${prazo.etapa}"`);
+        await saveCasefile();
+        render();
+      });
+    });
+  }
+
+  function renderPrazoRow(p, canManage){
+    const st = computeStatus(p);
+    const {done, total} = prazoProgress(p);
+    const respTxt = p.responsaveis.map(equipeLabel).join(', ');
+    return `
+      <div class="prazo-row">
+        <div class="prazo-left">
+          <div class="prazo-etapa">${esc(p.etapa)} <span class="badge status-${st}">${statusLabel(st)}</span></div>
+          <div class="prazo-resp">Responsáveis: ${esc(respTxt)} · ${p.modo==='automatico'?'contagem automática':'data fixa'}</div>
+        </div>
+        <div>
+          <div class="prazo-countdown">${countdownText(p, st)}</div>
+          <div class="prazo-limite">até ${fmtDateTime(p.dataLimite)}</div>
+          ${total > 1 ? `<div class="prazo-progress">${done}/${total} equipes protocolaram</div>` : ''}
+        </div>
+        ${canManage ? `<button class="btn danger small" data-delete-prazo="${p.id}">Excluir</button>` : ''}
+      </div>
+    `;
+  }
+
+  // ---------- ANDAMENTO TAB ----------
+  function renderAndamentoTab(content){
+    const log = [...casefile.log].sort((a,b)=> new Date(a.data) - new Date(b.data));
+    content.innerHTML = `
+      <h2 class="section-title">Andamento processual</h2>
+      <p class="section-sub">Movimentações registradas automaticamente, em ordem cronológica.</p>
+      <div class="card">
+        ${log.length===0 ? `<div class="empty">Sem movimentações ainda.</div>` : log.map((l,i)=>`
+          <div class="log-item">
+            <div class="log-num mono">Nº ${String(i+1).padStart(3,'0')}</div>
+            <div>
+              <div class="log-text">${esc(l.texto)}</div>
+              <div class="log-date">${fmtDateTime(l.data)}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  // ---------- CONFIG TAB ----------
+  function renderConfigTab(content){
+    if(currentPapel !== 'organizacao'){
+      activeTab = 'autos';
+      render();
+      return;
+    }
+    content.innerHTML = `
+      <h2 class="section-title">Configurações dos autos</h2>
+      <p class="section-sub">Visível apenas para o papel Organização.</p>
+      <div class="card">
+        <div class="field"><label>Título do caso</label><input type="text" id="c-titulo" value="${esc(config.titulo)}"></div>
+        <div class="field"><label>Vara / Comarca</label><input type="text" id="c-vara" value="${esc(config.vara)}"></div>
+        <button class="btn" id="c-save">Salvar alterações</button>
+        <div class="error-msg" id="c-msg"></div>
+      </div>
+
+      <div class="card">
+        <h3 class="serif" style="margin-top:0;">Equipes e PINs</h3>
+        <p class="section-sub">Compartilhe cada PIN apenas com a equipe correspondente. Você pode adicionar mais equipes de defesa (ex.: um novo réu) a qualquer momento.</p>
+        <div id="team-list">
+          ${config.equipes.map(eq => `
+            <div class="team-row">
+              <div class="team-info">
+                <div><b>${esc(eq.label)}</b> <span class="mono">(${esc(BASE_ROLE_LABELS[eq.papel])})</span></div>
+              </div>
+              <div class="team-actions">
+                <input type="text" class="t-pin" data-eq="${eq.id}" value="${esc(eq.pin)}">
+                <button class="btn secondary small" data-save-team="${eq.id}">Salvar</button>
+                <button class="btn danger small" data-del-team="${eq.id}">Remover</button>
+              </div>
+            </div>
+          `).join('')}
+          <div class="team-row"><div class="team-info"><b>Organização</b> <span class="mono">(acesso total)</span></div>
+            <div class="team-actions">
+              <input type="text" id="t-orgpin" value="${esc(config.orgPin)}">
+              <button class="btn secondary small" id="save-orgpin">Salvar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 class="serif" style="margin-top:0;">Adicionar nova equipe de defesa</h3>
+        <div class="field-row">
+          <div class="field"><label>Rótulo</label><input type="text" id="nt-label" placeholder="Ex.: Defesa — Réu 4 (Nome)"></div>
+          <div class="field"><label>PIN</label><input type="text" id="nt-pin"></div>
+        </div>
+        <button class="btn" id="add-team">Adicionar equipe</button>
+        <div class="error-msg" id="nt-msg"></div>
+      </div>
+
+      <div class="card">
+        <h3 class="serif" style="margin-top:0;">Link de compartilhamento</h3>
+        <p class="section-sub">Envie o mesmo link do artifact para todas as equipes. Cada uma escolhe sua equipe e digita o próprio PIN ao entrar. Os dados sincronizam entre todos que abrirem o link (botão "Atualizar" ou automaticamente a cada 20s).</p>
+      </div>
+    `;
+
+    document.getElementById('c-save').addEventListener('click', async ()=>{
+      const titulo = document.getElementById('c-titulo').value.trim();
+      const vara = document.getElementById('c-vara').value.trim();
+      const msg = document.getElementById('c-msg');
+      if(!titulo || !vara){ msg.textContent = 'Preencha os dois campos.'; return; }
+      config.titulo = titulo; config.vara = vara;
+      try{ await saveConfig(); msg.style.color='var(--forest)'; msg.textContent='Salvo.'; }
+      catch(e){ msg.style.color='var(--burgundy)'; msg.textContent='Erro ao salvar.'; }
+      render();
+    });
+
+    content.querySelectorAll('[data-save-team]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const eqId = btn.dataset.saveTeam;
+        const input = content.querySelector(`.t-pin[data-eq="${eqId}"]`);
+        const newPin = input.value.trim();
+        if(newPin.length < 4){ alert('O PIN precisa ter pelo menos 4 caracteres.'); return; }
+        const eq = equipeById(eqId);
+        eq.pin = newPin;
+        await saveConfig();
+        addLog(`${currentLabel} atualizou o PIN da equipe "${eq.label}"`);
+        await saveCasefile();
+        render();
+      });
+    });
+    content.querySelectorAll('[data-del-team]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const eqId = btn.dataset.delTeam;
+        const eq = equipeById(eqId);
+        if(!confirm(`Remover a equipe "${eq.label}"? As peças já protocoladas por ela permanecem nos autos, mas ninguém mais conseguirá entrar com esse login.`)) return;
+        config.equipes = config.equipes.filter(e => e.id !== eqId);
+        await saveConfig();
+        addLog(`${currentLabel} removeu a equipe "${eq.label}"`);
+        await saveCasefile();
+        render();
+      });
+    });
+    document.getElementById('save-orgpin').addEventListener('click', async ()=>{
+      const newPin = document.getElementById('t-orgpin').value.trim();
+      if(newPin.length < 4){ alert('O PIN precisa ter pelo menos 4 caracteres.'); return; }
+      config.orgPin = newPin;
+      await saveConfig();
+      render();
+    });
+    document.getElementById('add-team').addEventListener('click', async ()=>{
+      const label = document.getElementById('nt-label').value.trim();
+      const pin = document.getElementById('nt-pin').value.trim();
+      const msg = document.getElementById('nt-msg');
+      if(!label || pin.length < 4){ msg.textContent = 'Informe um rótulo e um PIN com ao menos 4 caracteres.'; return; }
+      const newId = `defesa-${uid()}`;
+      config.equipes.push({ id:newId, papel:'defesa', label, pin });
+      await saveConfig();
+      addLog(`${currentLabel} adicionou a equipe "${label}"`);
+      await saveCasefile();
+      render();
+    });
+  }
+
+  // ---------------- INIT ----------------
+  (async function init(){
+    try{
+      await ensureSupabaseSession();
+      await loadAll();
+      screen = config ? 'login' : 'setup';
+      render();
+    }catch(e){
+      console.error(e);
+      $app.innerHTML = `<div class="center-screen"><div class="card login-card"><div class="login-head"><div class="login-seal">TJ</div><h1>Não foi possível conectar aos autos</h1><p>Verifique a URL, a chave pública e a configuração do Supabase.</p><p class="hint">${esc(e.message || 'Erro desconhecido')}</p></div></div></div>`;
+    }
+  })();
+
+})();
+</script>
+</body>
+</html>
