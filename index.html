@@ -584,6 +584,17 @@
       if(sel === 'organizacao'){
         if(pin === config.orgPin){
           currentEquipeId = null; currentPapel = 'organizacao'; currentLabel = 'Organização';
+          try{
+            const { data: userData } = await supabaseClient.auth.getUser();
+            const orgUid = userData?.user?.id;
+            if(orgUid){
+              config.orgAuthUids = Array.isArray(config.orgAuthUids) ? config.orgAuthUids : [];
+              if(!config.orgAuthUids.includes(orgUid)){
+                config.orgAuthUids.push(orgUid);
+                await saveConfig();
+              }
+            }
+          }catch(e){}
           loginError = ''; screen = 'app'; startPolling(); render();
         } else { loginError = 'PIN incorreto.'; render(); }
         return;
@@ -821,6 +832,34 @@
         }
       });
     });
+    content.querySelectorAll('[data-delete-doc]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        if(currentPapel !== 'organizacao') return;
+        const id = btn.dataset.deleteDoc;
+        const doc = casefile.documentos.find(d=>d.id===id);
+        if(!doc) return;
+        if(!confirm(`Excluir a peça "${doc.titulo}" (${doc.protocolo}) dos autos?\n\nEsta ação não pode ser desfeita.`)) return;
+
+        btn.disabled = true;
+        btn.textContent = 'Excluindo…';
+        try{
+          if(doc.anexo?.path){
+            const { error } = await supabaseClient.storage
+              .from('juri-anexos')
+              .remove([doc.anexo.path]);
+            if(error) throw error;
+          }
+          casefile.documentos = casefile.documentos.filter(d=>d.id!==id);
+          addLog(`${currentLabel} excluiu a peça "${doc.titulo}" (${doc.protocolo})`);
+          await saveCasefile();
+          render();
+        }catch(err){
+          btn.disabled = false;
+          btn.textContent = 'Excluir peça';
+          alert('Não foi possível excluir a peça: ' + (err.message || 'erro desconhecido'));
+        }
+      });
+    });
   }
 
   function renderDocCard(doc){
@@ -844,6 +883,7 @@
         ${doc.conteudo.length > 220 ? `<button class="toggle-link" data-toggle-doc="${doc.id}" style="margin-top:6px;">${expanded?'Recolher':'Ler peça completa'}</button>` : ''}
         ${doc.anexo?.path ? `<div><button class="toggle-link" data-open-anexo="${esc(doc.anexo.path)}">📎 Abrir anexo${doc.anexo.name ? ` — ${esc(doc.anexo.name)}` : ''}</button></div>` : ''}
         ${safeUrl(doc.link) ? `<div><a class="doc-link" href="${esc(safeUrl(doc.link))}" target="_blank" rel="noopener noreferrer">🔗 Abrir link externo</a></div>` : ''}
+        ${currentPapel === 'organizacao' ? `<div style="margin-top:10px;"><button class="btn danger small" data-delete-doc="${esc(doc.id)}">Excluir peça</button></div>` : ''}
       </div>
     `;
   }
@@ -1040,6 +1080,13 @@
         <div class="error-msg" id="nt-msg"></div>
       </div>
 
+      <div class="card" style="border:1px solid var(--burgundy);">
+        <h3 class="serif" style="margin-top:0;">Administração do processo</h3>
+        <p class="section-sub">Apenas a Organização pode reiniciar os autos. Isso remove todas as peças e prazos e zera a numeração de protocolo, mantendo título, número dos autos, equipes e PINs.</p>
+        <button class="btn danger" id="reset-process">Reiniciar processo</button>
+        <div class="error-msg" id="reset-msg"></div>
+      </div>
+
       <div class="card">
         <h3 class="serif" style="margin-top:0;">Link de compartilhamento</h3>
         <p class="section-sub">Envie o mesmo link do artifact para todas as equipes. Cada uma escolhe sua equipe e digita o próprio PIN ao entrar. Os dados sincronizam entre todos que abrirem o link (botão "Atualizar" ou automaticamente a cada 20s).</p>
@@ -1102,6 +1149,37 @@
       addLog(`${currentLabel} adicionou a equipe "${label}"`);
       await saveCasefile();
       render();
+    });
+
+    document.getElementById('reset-process').addEventListener('click', async ()=>{
+      if(currentPapel !== 'organizacao') return;
+      const msg = document.getElementById('reset-msg');
+      if(!confirm('REINICIAR O PROCESSO?\n\nTodas as peças, prazos e o andamento serão apagados. O número dos autos, equipes e PINs serão mantidos.\n\nEsta ação não pode ser desfeita.')) return;
+      if(!confirm('Confirma novamente? Todos os documentos e anexos protocolados serão removidos.')) return;
+
+      const btn = document.getElementById('reset-process');
+      btn.disabled = true;
+      btn.textContent = 'Reiniciando…';
+      try{
+        const paths = casefile.documentos.filter(d=>d.anexo?.path).map(d=>d.anexo.path);
+        if(paths.length){
+          const { error } = await supabaseClient.storage.from('juri-anexos').remove(paths);
+          if(error) throw error;
+        }
+        casefile = {
+          documentos:[],
+          prazos:[],
+          log:[{id:uid(), texto:`Processo reiniciado por ${currentLabel}`, data:nowIso()}],
+          nextDocSeq:1
+        };
+        await saveCasefile();
+        activeTab = 'autos';
+        render();
+      }catch(err){
+        btn.disabled = false;
+        btn.textContent = 'Reiniciar processo';
+        msg.textContent = 'Não foi possível reiniciar: ' + (err.message || 'erro desconhecido');
+      }
     });
   }
 
