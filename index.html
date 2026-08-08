@@ -290,7 +290,8 @@
     const base = (file.name.replace(/\.[^/.]+$/, '') || 'anexo')
       .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
       .replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80) || 'anexo';
-    const path = `${currentEquipeId || 'organizacao'}/${Date.now()}-${uid()}-${base}.${ext}`;
+    const equipePath = (typeof currentEquipeId !== 'undefined' && currentEquipeId) ? currentEquipeId : 'organizacao';
+    const path = `${equipePath}/${Date.now()}-${uid()}-${base}.${ext}`;
 
     const { data, error } = await supabaseClient.storage
       .from('juri-anexos')
@@ -318,7 +319,7 @@
   let config = null;       // { titulo, vara, autosNumero, orgPin, equipes:[{id,papel,label,pin}], criadoEm }
   let casefile = null;     // { documentos:[], prazos:[], log:[] }
   let screen = 'loading';  // loading | setup | login | app
-  let currentEquipeId = null;   // null when organizacao
+  var currentEquipeId = null;   // null when organizacao
   let currentPapel = null;      // juizo | acusacao | defesa | secretaria | organizacao
   let currentLabel = null;
   let activeTab = 'autos';
@@ -778,7 +779,7 @@
       }catch(err){
         submitBtn.disabled = false;
         submitBtn.textContent = 'Protocolar peça';
-        errEl.textContent = err.message || 'Não foi possível enviar o anexo.';
+        errEl.textContent = 'Falha no envio do anexo: ' + (err && err.message ? err.message : 'erro desconhecido');
         return;
       }
 
