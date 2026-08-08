@@ -264,7 +264,7 @@
     return { value: JSON.stringify(data.value ?? parsed) };
   }
 
-  async function uploadAttachment(file){
+  async function uploadAttachment(file, equipeId){
     if(!file) return null;
     const maxSize = 20 * 1024 * 1024;
     if(file.size > maxSize) throw new Error('O anexo não pode ultrapassar 20 MB.');
@@ -290,8 +290,11 @@
     const base = (file.name.replace(/\.[^/.]+$/, '') || 'anexo')
       .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
       .replace(/[^a-zA-Z0-9_-]+/g,'-').replace(/^-+|-+$/g,'').slice(0,80) || 'anexo';
-    const equipePath = (typeof currentEquipeId !== 'undefined' && currentEquipeId) ? currentEquipeId : 'organizacao';
-    const path = `${equipePath}/${Date.now()}-${uid()}-${base}.${ext}`;
+    const equipePath = equipeId || 'organizacao';
+    const uniqueId = (window.crypto && crypto.randomUUID)
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
+    const path = `${equipePath}/${Date.now()}-${uniqueId}-${base}.${ext}`;
 
     const { data, error } = await supabaseClient.storage
       .from('juri-anexos')
@@ -775,7 +778,7 @@
 
       let attachment = null;
       try{
-        if(arquivo) attachment = await uploadAttachment(arquivo);
+        if(arquivo) attachment = await uploadAttachment(arquivo, currentEquipeId);
       }catch(err){
         submitBtn.disabled = false;
         submitBtn.textContent = 'Protocolar peça';
